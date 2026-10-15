@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Факт чи Судження? — Інформатика, 5 клас</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #ede9fe 100%);
+        }
+        h1, h2, h3 {
+            font-family: 'Fredoka', sans-serif;
+        }
+        .draggable {
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+        .draggable:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col items-center justify-between p-4">
+
+    <!-- Header -->
+    <header class="w-full max-w-4xl text-center py-6">
+        <span class="bg-indigo-100 text-indigo-700 text-sm font-bold px-3 py-1 rounded-full uppercase tracking-wider">Інформатика • 5 клас</span>
+        <h1 class="text-3xl md:text-4xl font-bold text-indigo-900 mt-2">🔍 Факт чи Судження?</h1>
+        <p class="text-slate-600 mt-1">Перевір, чи вмієш ти відрізняти правдиві факти про Інтернет від чиїхось думок і суджень!</p>
+    </header>
+
+    <!-- Main Game Area -->
+    <main class="w-full max-w-4xl bg-white/80 backdrop-blur-md rounded-3xl shadow-xl p-6 md:p-8 mb-6">
+        
+        <!-- Score & Progress -->
+        <div class="flex justify-between items-center mb-6 border-b border-slate-200 pb-4">
+            <div class="text-lg font-semibold text-slate-700">
+                Завдання: <span id="current-question" class="text-indigo-600 font-bold">1</span> / <span id="total-questions">8</span>
+            </div>
+            <div class="bg-amber-100 text-amber-800 px-4 py-1.5 rounded-full font-bold text-sm flex items-center gap-1">
+                ⭐ Бали: <span id="score">0</span>
+            </div>
+        </div>
+
+        <!-- Question Card -->
+        <div id="game-card" class="mb-8">
+            <div class="bg-indigo-50 border-2 border-indigo-100 rounded-2xl p-6 md:p-8 text-center shadow-inner">
+                <p id="statement-text" class="text-xl md:text-2xl font-medium text-slate-800 leading-relaxed">
+                    Завантаження завдання...
+                </p>
+            </div>
+        </div>
+
+        <!-- Choice Buttons -->
+        <div id="choices-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button onclick="checkAnswer('fact')" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold text-lg py-5 px-6 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-3">
+                <span class="text-2xl">📋</span> Це ФАКТ
+            </button>
+            <button onclick="checkAnswer('judgment')" class="bg-violet-500 hover:bg-violet-600 active:scale-95 text-white font-bold text-lg py-5 px-6 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-3">
+                <span class="text-2xl">💭</span> Це СУДЖЕННЯ (думка)
+            </button>
+        </div>
+
+        <!-- Feedback Box (Hidden initially) -->
+        <div id="feedback-box" class="hidden mt-6 p-5 rounded-2xl text-center transition-all">
+            <p id="feedback-text" class="font-bold text-lg mb-3"></p>
+            <button onclick="nextQuestion()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition-all">
+                Наступне завдання ➡️
+            </button>
+        </div>
+
+        <!-- Completion Screen (Hidden initially) -->
+        <div id="completion-screen" class="hidden text-center py-8">
+            <div class="text-6xl mb-4">🏆</div>
+            <h2 class="text-3xl font-bold text-indigo-900 mb-2">Чудова робота!</h2>
+            <p id="final-score-text" class="text-lg text-slate-600 mb-6">Ти набрав 0 з 8 балів!</p>
+            <button onclick="restartGame()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-2xl shadow-lg transition-all text-lg">
+                🔄 Грати знову
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-xs text-slate-500 text-center py-2">
+        Інтерактивна вправа з теми «Пошук відомостей в інтернеті. Критичне оцінювання медіатекстів»
+    </footer>
+
+    <!-- Game Logic Script -->
+    <script>
+        const questions = [
+            {
+                text: "Для перегляду вебсторінок використовуються спеціальні програми — браузери, такі як Google Chrome або Mozilla Firefox.",
+                type: "fact",
+                explanation: "Це факт, адже це доведений і технічно зафіксований стан речей: браузери створені саме для перегляду вебсторінок."
+            },
+            {
+                text: "Google Chrome — це найкрасивіший і найзручніший браузер у світі для кожного користувача.",
+                type: "judgment",
+                explanation: "Це судження (особиста думка), оскільки у кожного користувача можуть бути свої вподобання щодо програм."
+            },
+            {
+                text: "Глобальна мережа Інтернет з’єднує мільйони комп’ютерів з різних куточків світу.",
+                type: "fact",
+                explanation: "Це факт. Технічна структура інтернету полягає саме у з'єднанні мільйонів пристроїв по всьому світу."
+            },
+            {
+                text: "Шукати інформацію в інтернеті набагато цікавіше, ніж читати звичайні паперові книжки.",
+                type: "judgment",
+                explanation: "Це судження, оскільки це емоційне враження та суб'єктивна точка зору людини, а не доведений науковий факт."
+            },
+            {
+                text: "Створювати та змінювати текст більшості статей у Вікіпедії може будь-хто.",
+                type: "fact",
+                explanation: "Це факт, тому що правила вікіпедії дозволяють редагування статей зареєстрованим і незареєстрованим користувачам (через що матеріали потребують перевірки)."
+            },
+            {
+                text: "Будь-яка інформація, яку можна знайти в інтернеті на першому ж сайті, є абсолютно правдивою і достовірною.",
+                type: "judgment",
+                explanation: "Це хибне судження (і міф). В інтернеті є багато фейків та неперевіреної інформації, тому медіатексти треба оцінювати критично."
+            },
+            {
+                text: "Адреса вебсайту вводиться в спеціальне поле адреси у вікні браузера, після чого потрібно натиснути клавішу Enter.",
+                type: "fact",
+                explanation: "Це факт — чіткий алгоритм дій користувача для переходу на вебсторінку."
+            },
+            {
+                text: "Дітям молодшого віку взагалі не потрібен доступ до глобальної мережі Інтернет.",
+                type: "judgment",
+                explanation: "Це судження або суб'єктивна точка зору щодо використання технологій, а не зафіксована реальна подія чи закон."
+            }
+        ];
+
+        let currentIndex = 0;
+        let score = 0;
+        let answered = false;
+
+        const statementText = document.getElementById("statement-text");
+        const currentQuestionSpan = document.getElementById("current-question");
+        const totalQuestionsSpan = document.getElementById("total-questions");
+        const scoreSpan = document.getElementById("score");
+        const choicesContainer = document.getElementById("choices-container");
+        const feedbackBox = document.getElementById("feedback-box");
+        const feedbackText = document.getElementById("feedback-text");
+        const completionScreen = document.getElementById("completion-screen");
+        const gameCard = document.getElementById("game-card");
+
+        totalQuestionsSpan.textContent = questions.length;
+
+        function loadQuestion() {
+            if (currentIndex >= questions.length) {
+                showCompletion();
+                return;
+            }
+            answered = false;
+            currentQuestionSpan.textContent = currentIndex + 1;
+            statementText.textContent = questions[currentIndex].text;
+            
+            choicesContainer.classList.remove("hidden");
+            feedbackBox.classList.add("hidden");
+        }
+
+        function checkAnswer(selectedType) {
+            if (answered) return;
+            answered = true;
+
+            const currentQ = questions[currentIndex];
+            choicesContainer.classList.add("hidden");
+            feedbackBox.classList.remove("hidden");
+
+            if (selectedType === currentQ.type) {
+                score += 1;
+                scoreSpan.textContent = score;
+                feedbackBox.className = "mt-6 p-5 rounded-2xl text-center bg-emerald-100 border-2 border-emerald-300 text-emerald-900";
+                feedbackText.innerHTML = `✅ <strong>Правильно!</strong> ${currentQ.explanation}`;
+            } else {
+                feedbackBox.className = "mt-6 p-5 rounded-2xl text-center bg-rose-100 border-2 border-rose-300 text-rose-900";
+                feedbackText.innerHTML = `❌ <strong>Помилка!</strong> ${currentQ.explanation}`;
+            }
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            loadQuestion();
+        }
+
+        function showCompletion() {
+            gameCard.classList.add("hidden");
+            choicesContainer.classList.add("hidden");
+            feedbackBox.classList.add("hidden");
+            completionScreen.classList.remove("hidden");
+            document.getElementById("final-score-text").textContent = `Ти набрав ${score} з ${questions.length} балів!`;
+        }
+
+        function restartGame() {
+            currentIndex = 0;
+            score = 0;
+            scoreSpan.textContent = score;
+            gameCard.classList.remove("hidden");
+            completionScreen.classList.add("hidden");
+            loadQuestion();
+        }
+
+        // Initialize game on load
+        loadQuestion();
+    </script>
+</body>
+</html>
+```eof
+
+### Короткий огляд вправи:
+* **Тематика:** Повністю відповідає вашому уроку (браузери, інтернет, Вікіпедія, фейки, критичне мислення).
+* **Формат:** Інтерактивна гра з підрахунком балів та поясненнями після кожної відповіді (чому це факт або судження).
+* **Мотивація:** Яскравий і дружній інтерфейс, адаптований спеціально для п'ятикласників. 
+
+Бажаю чудового та захопливого уроку з вашими учнями!
